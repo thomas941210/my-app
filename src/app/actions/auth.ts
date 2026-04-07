@@ -13,6 +13,23 @@ function normalizeUsername(raw: unknown) {
   return u;
 }
 
+function friendlySignupError(e: unknown) {
+  if (e instanceof Error) {
+    if (e.message === "USER_EXISTS") return "이미 사용 중인 아이디예요.";
+    if (e.message === "SESSION_SECRET_MISSING") {
+      return "서버 설정 오류: SESSION_SECRET이 설정되지 않았어요. 관리자에게 문의해주세요.";
+    }
+  }
+  return "회원가입에 실패했어요. 잠시 후 다시 시도해주세요.";
+}
+
+function friendlyLoginError(e: unknown) {
+  if (e instanceof Error && e.message === "SESSION_SECRET_MISSING") {
+    return "서버 설정 오류: SESSION_SECRET이 설정되지 않았어요. 관리자에게 문의해주세요.";
+  }
+  return "로그인에 실패했어요. 잠시 후 다시 시도해주세요.";
+}
+
 export async function signup(state: ActionState, formData: FormData): Promise<ActionState> {
   const username = normalizeUsername(formData.get("username"));
   const nickname = String(formData.get("nickname") ?? "").trim();
@@ -31,10 +48,7 @@ export async function signup(state: ActionState, formData: FormData): Promise<Ac
     });
     await createSession(user.username);
   } catch (e: unknown) {
-    if (e instanceof Error && e.message === "USER_EXISTS") {
-      return { error: "이미 사용 중인 아이디예요." };
-    }
-    return { error: "회원가입에 실패했어요. 잠시 후 다시 시도해주세요." };
+    return { error: friendlySignupError(e) };
   }
 
   redirect(`/${username}`);
@@ -46,14 +60,18 @@ export async function login(state: ActionState, formData: FormData): Promise<Act
   if (!username) return { error: "아이디를 확인해주세요." };
   if (!password) return { error: "비밀번호를 입력해주세요." };
 
-  const user = await getUser(username);
-  if (!user) return { error: "아이디 또는 비밀번호가 올바르지 않아요." };
-  if (!verifyPassword(password, user.passwordHash)) {
-    return { error: "아이디 또는 비밀번호가 올바르지 않아요." };
-  }
+  try {
+    const user = await getUser(username);
+    if (!user) return { error: "아이디 또는 비밀번호가 올바르지 않아요." };
+    if (!verifyPassword(password, user.passwordHash)) {
+      return { error: "아이디 또는 비밀번호가 올바르지 않아요." };
+    }
 
-  await createSession(user.username);
-  redirect(`/${username}`);
+    await createSession(user.username);
+    redirect(`/${username}`);
+  } catch (e: unknown) {
+    return { error: friendlyLoginError(e) };
+  }
 }
 
 export async function logout() {
