@@ -19,6 +19,9 @@ function friendlySignupError(e: unknown) {
     if (e.message === "SESSION_SECRET_MISSING") {
       return "서버 설정 오류: SESSION_SECRET이 설정되지 않았어요. 관리자에게 문의해주세요.";
     }
+    if (e.message === "SUPABASE_CONFIG_MISSING") {
+      return "서버 설정 오류: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY가 Production에 설정되지 않았어요.";
+    }
   }
   return "회원가입에 실패했어요. 잠시 후 다시 시도해주세요.";
 }
