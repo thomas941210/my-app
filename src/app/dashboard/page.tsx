@@ -71,7 +71,6 @@ export default async function DashboardPage() {
         </div>
 
         <DashboardClient
-          username={username}
           user={user}
           links={links}
           clicks={stats.perLink}

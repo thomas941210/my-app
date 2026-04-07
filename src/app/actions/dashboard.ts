@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/session";
 import {
   addLink,
   deleteLink,
+  type LinkType,
   reorderLinks,
   updateLink,
   updateUserProfile,
@@ -25,6 +26,14 @@ function safeUrl(v: unknown) {
   } catch {
     return null;
   }
+}
+
+function parseLinkType(v: unknown): LinkType {
+  const t = safeText(v);
+  if (t === "kakao" || t === "youtube" || t === "threads" || t === "linkedin" || t === "custom") {
+    return t;
+  }
+  return "custom";
 }
 
 export async function updateProfile(state: ActionState, formData: FormData): Promise<ActionState> {
@@ -48,7 +57,7 @@ export async function updateProfile(state: ActionState, formData: FormData): Pro
 
 export async function addLinkAction(state: ActionState, formData: FormData): Promise<ActionState> {
   const username = await requireUser();
-  const type = safeText(formData.get("type")) as any;
+  const type = parseLinkType(formData.get("type"));
   const title = safeText(formData.get("title"));
   const url = safeUrl(formData.get("url"));
 
@@ -66,7 +75,7 @@ export async function updateLinkAction(
   formData: FormData,
 ): Promise<ActionState> {
   const username = await requireUser();
-  const type = safeText(formData.get("type")) as any;
+  const type = parseLinkType(formData.get("type"));
   const title = safeText(formData.get("title"));
   const url = safeUrl(formData.get("url"));
   if (!title) return { error: "링크 제목을 입력해주세요." };

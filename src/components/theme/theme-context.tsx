@@ -21,13 +21,15 @@ function applyTheme(theme: ThemeMode) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>("auto");
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    if (typeof window === "undefined") return "auto";
+    return (localStorage.getItem(STORAGE_KEY) as ThemeMode | null) ?? "auto";
+  });
 
   useEffect(() => {
-    const saved = (localStorage.getItem(STORAGE_KEY) as ThemeMode | null) ?? "auto";
-    setThemeState(saved);
-    applyTheme(saved);
-  }, []);
+    applyTheme(theme);
+    localStorage.setItem(STORAGE_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
@@ -39,8 +41,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setTheme = (next: ThemeMode) => {
     setThemeState(next);
-    localStorage.setItem(STORAGE_KEY, next);
-    applyTheme(next);
   };
 
   const value = useMemo(() => ({ theme, setTheme }), [theme]);

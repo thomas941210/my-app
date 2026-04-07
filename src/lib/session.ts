@@ -8,8 +8,13 @@ const COOKIE_NAME = "session";
 const MAX_AGE_DAYS = 7;
 
 function getSecret() {
-  // 로컬 개발 UX를 위해 기본값 제공 (운영에서는 반드시 환경변수로 지정)
-  return process.env.SESSION_SECRET || "dev-secret-change-me";
+  const secret = process.env.SESSION_SECRET;
+  // 운영(배포)에서는 기본값으로 돌아가면 보안 사고로 이어질 수 있어 강제합니다.
+  if (process.env.NODE_ENV === "production" && !secret) {
+    throw new Error("SESSION_SECRET is required in production");
+  }
+  // 개발 편의: 로컬에서만 fallback 허용
+  return secret || "dev-secret-change-me";
 }
 
 export async function createSession(username: string) {

@@ -43,6 +43,7 @@ export type Db = {
 
 const DATA_DIR = path.join(process.cwd(), ".data");
 const DB_PATH = path.join(DATA_DIR, "db.json");
+const KV_KEY = "linkinbio:db:v1";
 
 const emptyDb: Db = {
   users: {},
@@ -55,7 +56,27 @@ async function ensureDataDir() {
   await fs.mkdir(DATA_DIR, { recursive: true });
 }
 
+async function getKv() {
+  // Vercel Redis/KV 환경변수가 있으면 그쪽을 사용 (서버리스에서 파일쓰기 문제 회피)
+  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) return null;
+  const mod = await import("@vercel/kv");
+  return mod.kv;
+}
+
 export async function readDb(): Promise<Db> {
+  const kv = await getKv();
+  if (kv) {
+    const parsed = (await kv.get<Db>(KV_KEY)) ?? emptyDb;
+    return {
+      ...emptyDb,
+      ...parsed,
+      users: parsed.users ?? {},
+      links: parsed.links ?? {},
+      clicks: parsed.clicks ?? {},
+      contacts: parsed.contacts ?? [],
+    };
+  }
+
   await ensureDataDir();
   try {
     const raw = await fs.readFile(DB_PATH, "utf8");
@@ -68,13 +89,20 @@ export async function readDb(): Promise<Db> {
       clicks: parsed.clicks ?? {},
       contacts: parsed.contacts ?? [],
     };
-  } catch (e: any) {
-    if (e?.code === "ENOENT") return emptyDb;
-    throw e;
+  } catch (e: unknown) {
+    const err = e as NodeJS.ErrnoException;
+    if (err?.code === "ENOENT") return emptyDb;
+    throw err;
   }
 }
 
 async function writeDb(db: Db) {
+  const kv = await getKv();
+  if (kv) {
+    await kv.set(KV_KEY, db);
+    return;
+  }
+
   await ensureDataDir();
   await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2), "utf8");
 }

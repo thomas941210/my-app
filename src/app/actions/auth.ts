@@ -30,8 +30,8 @@ export async function signup(state: ActionState, formData: FormData): Promise<Ac
       bio: "",
     });
     await createSession(user.username);
-  } catch (e: any) {
-    if (String(e?.message) === "USER_EXISTS") {
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === "USER_EXISTS") {
       return { error: "이미 사용 중인 아이디예요." };
     }
     return { error: "회원가입에 실패했어요. 잠시 후 다시 시도해주세요." };

@@ -26,7 +26,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ### Environment Variables
 
-프로젝트 루트에 `.env.local`을 만들고 필요 시 아래를 설정하세요.
+프로젝트 루트에 `.env.local`을 만들고 필요 시 아래를 설정하세요. (배포/Vercel에서는 Environment Variables로 설정)
 
 ```bash
 # (선택) 세션 쿠키 서명 키 — 운영에서는 반드시 변경
@@ -38,6 +38,7 @@ NOTION_DATABASE_ID="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 > `.env*` 파일은 기본적으로 Git에 커밋되지 않도록 설정되어 있습니다.
+> 예시는 `.env.example`을 참고하세요.
 
 ### Data Storage (로컬)
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import type { LinkType, ThemeMode, UserLink, UserProfile } from "@/lib/store";
+import type { ThemeMode, UserLink, UserProfile } from "@/lib/store";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   addLinkAction,
@@ -15,13 +15,11 @@ import { useActionState } from "react";
 type TabKey = "profile" | "links" | "stats" | "theme";
 
 export function DashboardClient({
-  username,
   user,
   links,
   clicks,
   totalClicks,
 }: {
-  username: string;
   user: UserProfile;
   links: UserLink[];
   clicks: Record<string, number>;
@@ -47,7 +45,7 @@ export function DashboardClient({
       </div>
 
       {tab === "profile" && <ProfilePanel user={user} />}
-      {tab === "links" && <LinksPanel username={username} initialLinks={links} clicks={clicks} />}
+      {tab === "links" && <LinksPanel initialLinks={links} clicks={clicks} />}
       {tab === "stats" && <StatsPanel links={links} clicks={clicks} total={totalClicks} />}
       {tab === "theme" && <ThemePanel initial={user.theme} />}
     </div>
@@ -111,11 +109,9 @@ function ProfilePanel({ user }: { user: UserProfile }) {
 }
 
 function LinksPanel({
-  username,
   initialLinks,
   clicks,
 }: {
-  username: string;
   initialLinks: UserLink[];
   clicks: Record<string, number>;
 }) {
@@ -185,7 +181,6 @@ function LinksPanel({
           {links.map((l, idx) => (
             <LinkRow
               key={l.id}
-              username={username}
               link={l}
               index={idx}
               move={onMove}
@@ -219,13 +214,11 @@ function LinksPanel({
 }
 
 function LinkRow({
-  username,
   link,
   index,
   move,
   clicks,
 }: {
-  username: string;
   link: UserLink;
   index: number;
   move: (from: number, to: number) => void;
